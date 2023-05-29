@@ -49,7 +49,7 @@ wss.on('connection', function connection(ws, connectionRequest) {
 function sendList(ws, params) {
     MsgClient.List({}, (error, msgs) => {
         if (error) throw error;
-        console.log(msgs);
+        //console.log(msgs);
         if (!msgs.results)
             msgs = {};
         else
@@ -79,7 +79,14 @@ function postMsg(ws, params) {
         sent_time: params.sent_time,
         is_deleted: false
     }
-    //console.log(new_msg);
+    //{
+    //             "event": "create_msg",
+    //             "topic": 4,
+    //             "sender": 1,
+    //             "text": "i like this topic",
+    //             "sent_time": "2023-05-24T20:33:36.807876Z",
+    //             "is_deleted": false
+    // }.log(new_msg);
     MsgClient.Create(new_msg, (error, res) =>
     {
         if(error) throw error;
@@ -112,17 +119,22 @@ function sendMsg(ws, params){
 
 }
 
-function updMsg(ws, message){
-
-}
-
 function delMsg(ws, params){
     if (params.id)
     {
         let msg_req = {
-            id: params.id
+            id: params.id,
+            is_deleted: true,
+            _partial_update_fields: ["is_deleted"]
         }
-        let msg = MsgClient.Retrieve(msg_req)
+        //console.log(msg_req);
+        MsgClient.PartialUpdate(msg_req, (error, res) => {
+            if(error) throw error;
+            ws.send(JSON.stringify({
+                status:"ok"
+            }))
+            //console.log(res);
+        });
     }
     else
         ws.send(JSON.stringify({}));
