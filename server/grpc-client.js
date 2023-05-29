@@ -1,5 +1,20 @@
-const grpc = require("@grpc/grpc-js");
-var protoLoader = require("@grpc/proto-loader");
+const path = require('path');
+const grpc = require('@grpc/grpc-js');
+const protoLoader = require('@grpc/proto-loader');
+
+const packageDefinitionConv = protoLoader.loadSync(path.join(__dirname, './convosphere_backend.proto'));
+const MessageProto = grpc.loadPackageDefinition(packageDefinitionConv);
+const MsgController = MessageProto.convosphere_backend.convosphere_backend.MessageController;
+const MessageClient = new MsgController('127.0.0.1:50051', grpc.credentials.createInsecure());
+
+module.exports = MessageClient;
+
+
+//const grpc = require("@grpc/grpc-js");
+/*const grpc = require("grpc");
+const protoLoader = require("@grpc/proto-loader");
+const PROTO_PATH = "./convosphere_backend.proto";
+
 const options = {
     keepCase: true,
     longs: String,
@@ -7,15 +22,18 @@ const options = {
     defaults: true,
     oneofs: true,
 };
-const PROTO_PATH = "./message.proto";
 
-var packageDefinition = protoLoader.loadSync(PROTO_PATH, options);
+const packageDefinition = protoLoader.loadSync(PROTO_PATH, options);
 
 const MsgController = grpc.loadPackageDefinition(packageDefinition).MsgController;
 
+
 const client = new MsgController(
-    "grpc://127.0.0.1:50051",
+    "127.0.0.1:50051",
     grpc.credentials.createInsecure()
 );
 
 module.exports = client;
+
+
+*/
