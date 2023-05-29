@@ -19,7 +19,7 @@ wss.on('connection', function connection(ws, connectionRequest) {
     const [_path, params] = connectionRequest.url.split("?");
     const connectionParams = parse(params);
     //console.log(connectionParams);
-    //!!!!!!!!!!Вернуть !!!!!!!!!после подключения отправляем все сообщения
+    //после подключения отправляем все сообщения
     //sendList(ws, connectionParams);
     // обработка событий
     ws.on('message', function (message) {
@@ -31,13 +31,16 @@ wss.on('connection', function connection(ws, connectionRequest) {
             case 'create_msg':
                 postMsg(ws, message);
                 break;
+            case 'get_one_msg':
+                sendMsg(ws, message);
+                break;
+            case 'delete_msg':
+                delMsg(ws, message);
+                break;
             case 'close':
                 ws.close(1000, JSON.stringify({message:"connection closed due to user logout"}));
                 break;
-            case 'delete_msg':
-                console.log("удаление сообщения")
-                //ws.send(message)
-                break;
+
         }
     })
 })
@@ -46,7 +49,11 @@ wss.on('connection', function connection(ws, connectionRequest) {
 function sendList(ws, params) {
     MsgClient.List({}, (error, msgs) => {
         if (error) throw error;
-        msgs.results = msgs.results.map((m) => transform(m))
+        console.log(msgs);
+        if (!msgs.results)
+            msgs = {};
+        else
+           msgs.results = msgs.results.map((m) => transform(m));
         ws.send(JSON.stringify(msgs));
     });
 }
@@ -54,7 +61,10 @@ function sendList(ws, params) {
 //нужна, тк поля parent и topic имеют тип long (int64)
 function transform(m)
 {
-    m.parent = m.parent.toNumber();
+    if(m.parent)
+        m.parent = m.parent.toNumber();
+    else
+        m.parent = -1;
     m.topic = m.topic.toNumber();
     return m;
 }
@@ -62,14 +72,14 @@ function transform(m)
 //новое сообщение
 function postMsg(ws, params) {
     let new_msg = {
-        id: null,
-        parent: params.parent,
+        parent: params.parent? params.parent:null,
         topic: params.topic,
         sender: params.sender,
         text: params.text,
         sent_time: params.sent_time,
-        is_deleted: false,
+        is_deleted: false
     }
+    //console.log(new_msg);
     MsgClient.Create(new_msg, (error, res) =>
     {
         if(error) throw error;
@@ -77,10 +87,44 @@ function postMsg(ws, params) {
             status:"ok"
         }))
     });
+    broadcastMessage(new_msg);
 }
 
-function broadcastMessage(message, id) {
+function broadcastMessage(message) {
     wss.clients.forEach(client => {
-        client.send(JSON.stringify())
+        client.send(JSON.stringify(message));
     })
+}
+
+function sendMsg(ws, params){
+    if (params.id)
+    {
+        let msg_req = {
+            id: params.id
+        }
+        MsgClient.Retrieve(msg_req, (error, res) => {
+            if(error) throw error;
+            ws.send(JSON.stringify(transform(res)));
+        });
+    }
+    else
+        ws.send(JSON.stringify({}));
+
+}
+
+function updMsg(ws, message){
+
+}
+
+function delMsg(ws, params){
+    if (params.id)
+    {
+        let msg_req = {
+            id: params.id
+        }
+        let msg = MsgClient.Retrieve(msg_req)
+    }
+    else
+        ws.send(JSON.stringify({}));
+
 }
