@@ -75,9 +75,9 @@ function postMsg(ws, params) {
         parent: params.parent? params.parent:null,
         topic: params.topic,
         sender: params.sender,
-        text: params.text,
-        sent_time: params.sent_time,
-        is_deleted: false
+        text: params.text
+        //sent_time: params.sent_time,
+        //is_deleted: false
     }
     //{
     //             "event": "create_msg",
@@ -127,13 +127,13 @@ function delMsg(ws, params){
             is_deleted: true,
             _partial_update_fields: ["is_deleted"]
         }
-        //console.log(msg_req);
+        console.log(msg_req);
         MsgClient.PartialUpdate(msg_req, (error, res) => {
             if(error) throw error;
             ws.send(JSON.stringify({
                 status:"ok"
             }))
-            //console.log(res);
+            console.log(res);
         });
     }
     else
