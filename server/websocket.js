@@ -75,9 +75,9 @@ function postMsg(ws, params) {
         parent: params.parent? params.parent:null,
         topic: params.topic,
         sender: params.sender,
-        text: params.text,
-        sent_time: params.sent_time,
-        is_deleted: false
+        text: params.text
+        //sent_time: params.sent_time,
+        //is_deleted: false
     }
     //{
     //             "event": "create_msg",
