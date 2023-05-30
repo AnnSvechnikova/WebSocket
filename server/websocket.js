@@ -64,7 +64,7 @@ function transform(m)
     if(m.parent)
         m.parent = m.parent.toNumber();
     else
-        m.parent = -1;
+        m.parent = null;
     m.topic = m.topic.toNumber();
     return m;
 }
